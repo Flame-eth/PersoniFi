@@ -1,0 +1,46 @@
+sequenceDiagram
+    participant User
+    participant API as REST/GraphQL API
+    participant Auth as JWT Auth
+    participant TransApp as Transactions App
+    participant AccApp as Accounts App
+    participant BudgetApp as Budgets App
+    participant NotifApp as Notifications App
+    participant DB as PostgreSQL
+    participant Cache as Redis
+    participant Queue as Celery
+
+    User->>API: POST /api/v1/transactions/<br/>{amount: 5000, category: "Groceries"}
+    API->>Auth: Verify JWT Token
+    Auth-->>API: ✓ Authenticated
+    
+    API->>TransApp: Create Transaction
+    TransApp->>DB: Check if duplicate exists
+    DB-->>TransApp: No duplicate
+    
+    TransApp->>DB: INSERT transaction
+    DB-->>TransApp: Transaction created
+    
+    TransApp->>AccApp: Update account balance
+    AccApp->>DB: UPDATE account SET balance = balance - 5000
+    DB-->>AccApp: Balance updated
+    
+    TransApp->>BudgetApp: Check budget status
+    BudgetApp->>DB: SELECT budget WHERE category = "Groceries"
+    DB-->>BudgetApp: Budget: 10000, Spent: 4500
+    BudgetApp->>BudgetApp: Calculate: 9500/10000 = 95%
+    
+    alt Budget threshold exceeded (>80%)
+        BudgetApp->>DB: INSERT budget_alert
+        BudgetApp->>Queue: send_budget_alert.delay(user_id)
+        Queue->>NotifApp: Process alert
+        NotifApp->>User: 🔔 Budget Alert: 95% of Groceries budget used
+    end
+    
+    TransApp->>Cache: Invalidate user's analytics cache
+    Cache-->>TransApp: Cache cleared
+    
+    TransApp-->>API: Transaction created successfully
+    API-->>User: 201 Created<br/>{id: "abc-123", amount: 5000, ...}
+    
+    Note over Queue,NotifApp: Async: Email confirmation sent<br/>within seconds

@@ -1,0 +1,116 @@
+graph TB
+subgraph "Client Layer"
+WebApp[Web Application]
+MobileApp[Mobile App - Future]
+ThirdParty[Third-Party Apps]
+end
+
+    subgraph "API Gateway"
+        REST[REST API v1<br/>Django REST Framework]
+        GraphQL[GraphQL API<br/>Graphene-Django]
+    end
+
+    subgraph "Authentication"
+        JWT[JWT Auth]
+        OAuth[OAuth2 Google/Facebook]
+        OTP[SMS OTP]
+    end
+
+    subgraph "Core Applications"
+        Users[Users App<br/>Custom User Model]
+        Accounts[Accounts App<br/>Bank & Mobile Money]
+        Transactions[Transactions App<br/>Income/Expense]
+        Categories[Categories App<br/>Organization]
+        Budgets[Budgets App<br/>Planning & Tracking]
+        Goals[Goals App<br/>Financial Goals]
+        Analytics[Analytics App<br/>Reports & Insights]
+        Notifications[Notifications App<br/>Multi-channel Alerts]
+        Integrations[Integrations App<br/>Third-party APIs]
+        Subscriptions[Subscriptions App<br/>SaaS Billing]
+    end
+
+    subgraph "Data Layer"
+        PostgreSQL[(PostgreSQL 15+<br/>Primary Database)]
+        Redis[(Redis<br/>Cache & Queue)]
+    end
+
+    subgraph "Background Jobs"
+        Celery[Celery Workers]
+        CeleryBeat[Celery Beat<br/>Scheduled Tasks]
+    end
+
+    subgraph "External Services"
+        MPesa[M-Pesa API]
+        Paystack[Paystack<br/>Payments]
+        Flutterwave[Flutterwave<br/>Payments]
+        SMS[Africa's Talking<br/>SMS Service]
+        Email[SendGrid<br/>Email Service]
+        Storage[AWS S3<br/>File Storage]
+        ExchangeRates[Exchange Rates API]
+    end
+
+    WebApp --> REST
+    WebApp --> GraphQL
+    MobileApp --> REST
+    MobileApp --> GraphQL
+    ThirdParty --> REST
+
+    REST --> JWT
+    REST --> OAuth
+    REST --> OTP
+    GraphQL --> JWT
+    GraphQL --> OAuth
+
+    REST --> Users
+    REST --> Accounts
+    REST --> Transactions
+    REST --> Categories
+    REST --> Budgets
+    REST --> Goals
+    REST --> Analytics
+    REST --> Notifications
+    REST --> Integrations
+    REST --> Subscriptions
+
+    GraphQL --> Users
+    GraphQL --> Accounts
+    GraphQL --> Transactions
+    GraphQL --> Categories
+    GraphQL --> Budgets
+    GraphQL --> Goals
+    GraphQL --> Analytics
+
+    Users --> PostgreSQL
+    Accounts --> PostgreSQL
+    Transactions --> PostgreSQL
+    Categories --> PostgreSQL
+    Budgets --> PostgreSQL
+    Goals --> PostgreSQL
+    Analytics --> PostgreSQL
+    Notifications --> PostgreSQL
+    Integrations --> PostgreSQL
+    Subscriptions --> PostgreSQL
+
+    Analytics --> Redis
+    Users --> Redis
+    REST --> Redis
+    GraphQL --> Redis
+
+    Celery --> Redis
+    CeleryBeat --> Redis
+    Celery --> PostgreSQL
+
+    Integrations --> MPesa
+    Integrations --> ExchangeRates
+    Subscriptions --> Paystack
+    Subscriptions --> Flutterwave
+    Notifications --> SMS
+    Notifications --> Email
+    Accounts --> Storage
+
+    style REST fill:#4CAF50
+    style GraphQL fill:#E91E63
+    style PostgreSQL fill:#336791
+    style Redis fill:#DC382D
+    style Celery fill:#37B24D
+
