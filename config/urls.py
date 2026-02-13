@@ -25,7 +25,13 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from graphene_django.views import GraphQLView
+from api.v1.graphql.views import (
+    SecureGraphQLView,
+    DevelopmentGraphQLView,
+)
+
+# Choose between secure and development GraphQL views based on DEBUG setting
+GraphQLViewClass = DevelopmentGraphQLView if settings.DEBUG else SecureGraphQLView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -45,7 +51,7 @@ urlpatterns = [
     path("api/v1/", include("api.v1.rest.urls")),
     path(
         "graphql/",
-        csrf_exempt(GraphQLView.as_view(graphiql=settings.DEBUG)),
+        csrf_exempt(GraphQLViewClass.as_view(graphiql=settings.DEBUG)),
         name="graphql",
     ),
 ]
