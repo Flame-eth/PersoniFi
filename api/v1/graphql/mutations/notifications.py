@@ -1,5 +1,6 @@
 import graphene
 from apps.notifications.models import Notification
+from ..authentication import login_required
 
 
 class MarkNotificationRead(graphene.Mutation):
@@ -9,12 +10,11 @@ class MarkNotificationRead(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
-    def mutate(self, info, id):
+    @staticmethod
+    @login_required
+    def mutate(mutate_self, info, id):
+        """Mark a notification as read (user must own it)."""
         user = info.context.user
-        if not user.is_authenticated:
-            return MarkNotificationRead(
-                success=False, errors=["Authentication required"]
-            )
 
         try:
             notification = Notification.objects.get(pk=id, user=user)
@@ -33,12 +33,11 @@ class MarkAllNotificationsRead(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
-    def mutate(self, info):
+    @staticmethod
+    @login_required
+    def mutate(mutate_self, info):
+        """Mark all notifications as read for the authenticated user."""
         user = info.context.user
-        if not user.is_authenticated:
-            return MarkAllNotificationsRead(
-                success=False, errors=["Authentication required"]
-            )
 
         try:
             Notification.objects.filter(user=user).update(is_read=True)

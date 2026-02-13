@@ -1,6 +1,7 @@
 import graphene
 from apps.accounts.models import Account
 from ..types.accounts import AccountType
+from ..authentication import login_required
 
 
 class CreateAccount(graphene.Mutation):
@@ -14,11 +15,11 @@ class CreateAccount(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
-    def mutate(self, info, name, account_type, currency, institution=None):
+    @staticmethod
+    @login_required
+    def mutate(mutate_self, info, name, account_type, currency, institution=None):
+        """Create a new account for the authenticated user."""
         user = info.context.user
-        if not user.is_authenticated:
-            return CreateAccount(success=False, errors=["Authentication required"])
-
         try:
             account = Account.objects.create(
                 user=user,
@@ -45,8 +46,10 @@ class UpdateAccount(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
+    @staticmethod
+    @login_required
     def mutate(
-        self,
+        mutate_self,
         info,
         id,
         name=None,
@@ -55,10 +58,8 @@ class UpdateAccount(graphene.Mutation):
         institution=None,
         is_active=None,
     ):
+        """Update an account (user must own the account)."""
         user = info.context.user
-        if not user.is_authenticated:
-            return UpdateAccount(success=False, errors=["Authentication required"])
-
         try:
             account = Account.objects.get(pk=id, user=user)
             if name is not None:
@@ -77,6 +78,28 @@ class UpdateAccount(graphene.Mutation):
             return UpdateAccount(success=False, errors=["Account not found"])
         except Exception as e:
             return UpdateAccount(success=False, errors=[str(e)])
+
+
+class DeleteAccount(graphene.Mutation):
+    class Arguments:
+        id = graphene.UUID(required=True)
+
+    success = graphene.Boolean()
+    errors = graphene.List(graphene.String)
+
+    @staticmethod
+    @login_required
+    def mutate(mutate_self, info, id):
+        """Delete an account (user must own the account)."""
+        user = info.context.user
+        try:
+            account = Account.objects.get(pk=id, user=user)
+            account.delete()
+            return DeleteAccount(success=True, errors=[])
+        except Account.DoesNotExist:
+            return DeleteAccount(success=False, errors=["Account not found"])
+        except Exception as e:
+            return DeleteAccount(success=False, errors=[str(e)])
 
 
 class DeleteAccount(graphene.Mutation):

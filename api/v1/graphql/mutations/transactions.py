@@ -2,6 +2,7 @@ import graphene
 from datetime import datetime
 from apps.transactions.models import Transaction
 from ..types.transactions import TransactionType
+from ..authentication import login_required
 
 
 class CreateTransaction(graphene.Mutation):
@@ -20,8 +21,10 @@ class CreateTransaction(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
+    @staticmethod
+    @login_required
     def mutate(
-        self,
+        mutate_self,
         info,
         account_id,
         amount,
@@ -33,9 +36,8 @@ class CreateTransaction(graphene.Mutation):
         description=None,
         notes=None,
     ):
+        """Create a new transaction for the authenticated user."""
         user = info.context.user
-        if not user.is_authenticated:
-            return CreateTransaction(success=False, errors=["Authentication required"])
 
         try:
             transaction = Transaction.objects.create(
@@ -72,8 +74,10 @@ class UpdateTransaction(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
+    @staticmethod
+    @login_required
     def mutate(
-        self,
+        mutate_self,
         info,
         id,
         account_id=None,
@@ -86,9 +90,8 @@ class UpdateTransaction(graphene.Mutation):
         notes=None,
         payment_method=None,
     ):
+        """Update a transaction (user must own it)."""
         user = info.context.user
-        if not user.is_authenticated:
-            return UpdateTransaction(success=False, errors=["Authentication required"])
 
         try:
             transaction = Transaction.objects.get(pk=id, user=user)
@@ -125,10 +128,11 @@ class DeleteTransaction(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
-    def mutate(self, info, id):
+    @staticmethod
+    @login_required
+    def mutate(mutate_self, info, id):
+        """Delete a transaction (user must own it)."""
         user = info.context.user
-        if not user.is_authenticated:
-            return DeleteTransaction(success=False, errors=["Authentication required"])
 
         try:
             transaction = Transaction.objects.get(pk=id, user=user)

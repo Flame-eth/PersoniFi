@@ -1,6 +1,7 @@
 import graphene
 from apps.categories.models import Category
 from ..types.categories import CategoryType
+from ..authentication import login_required
 
 
 class CreateCategory(graphene.Mutation):
@@ -13,10 +14,11 @@ class CreateCategory(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
-    def mutate(self, info, name, category_type, parent_id=None):
+    @staticmethod
+    @login_required
+    def mutate(mutate_self, info, name, category_type, parent_id=None):
+        """Create a new category for the authenticated user."""
         user = info.context.user
-        if not user.is_authenticated:
-            return CreateCategory(success=False, errors=["Authentication required"])
 
         try:
             category = Category.objects.create(
@@ -42,12 +44,19 @@ class UpdateCategory(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
+    @staticmethod
+    @login_required
     def mutate(
-        self, info, id, name=None, category_type=None, parent_id=None, is_active=None
+        mutate_self,
+        info,
+        id,
+        name=None,
+        category_type=None,
+        parent_id=None,
+        is_active=None,
     ):
+        """Update a category (user must own it and it must not be a system category)."""
         user = info.context.user
-        if not user.is_authenticated:
-            return UpdateCategory(success=False, errors=["Authentication required"])
 
         try:
             category = Category.objects.get(pk=id, user=user)
@@ -78,10 +87,11 @@ class DeleteCategory(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
-    def mutate(self, info, id):
+    @staticmethod
+    @login_required
+    def mutate(mutate_self, info, id):
+        """Delete a category (user must own it and it must not be a system category)."""
         user = info.context.user
-        if not user.is_authenticated:
-            return DeleteCategory(success=False, errors=["Authentication required"])
 
         try:
             category = Category.objects.get(pk=id, user=user)

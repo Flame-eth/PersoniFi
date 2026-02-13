@@ -1,6 +1,7 @@
 import graphene
 from apps.transactions.models import Transaction
 from ..types.transactions import TransactionType
+from ..authentication import login_required
 
 
 class TransactionQueries(graphene.ObjectType):
@@ -12,19 +13,19 @@ class TransactionQueries(graphene.ObjectType):
         category_id=graphene.UUID(),
     )
 
+    @login_required
     def resolve_transaction(self, info, id):
-        if not info.context.user.is_authenticated:
-            return None
+        """Retrieve a specific transaction by ID (user must own it)."""
         try:
             return Transaction.objects.get(pk=id, user=info.context.user)
         except Transaction.DoesNotExist:
             return None
 
+    @login_required
     def resolve_transactions(
         self, info, transaction_type=None, account_id=None, category_id=None
     ):
-        if not info.context.user.is_authenticated:
-            return []
+        """Retrieve all transactions for the authenticated user."""
         queryset = Transaction.objects.filter(user=info.context.user)
         if transaction_type:
             queryset = queryset.filter(transaction_type=transaction_type)

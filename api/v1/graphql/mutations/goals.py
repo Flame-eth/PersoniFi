@@ -1,6 +1,7 @@
 import graphene
 from apps.goals.models import Goal
 from ..types.goals import GoalType
+from ..authentication import login_required
 
 
 class CreateGoal(graphene.Mutation):
@@ -15,10 +16,13 @@ class CreateGoal(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
-    def mutate(self, info, name, target_amount, currency, goal_type, deadline=None):
+    @staticmethod
+    @login_required
+    def mutate(
+        mutate_self, info, name, target_amount, currency, goal_type, deadline=None
+    ):
+        """Create a new goal for the authenticated user."""
         user = info.context.user
-        if not user.is_authenticated:
-            return CreateGoal(success=False, errors=["Authentication required"])
 
         try:
             goal = Goal.objects.create(
@@ -49,8 +53,10 @@ class UpdateGoal(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
+    @staticmethod
+    @login_required
     def mutate(
-        self,
+        mutate_self,
         info,
         id,
         name=None,
@@ -61,9 +67,8 @@ class UpdateGoal(graphene.Mutation):
         deadline=None,
         is_achieved=None,
     ):
+        """Update a goal (user must own it)."""
         user = info.context.user
-        if not user.is_authenticated:
-            return UpdateGoal(success=False, errors=["Authentication required"])
 
         try:
             goal = Goal.objects.get(pk=id, user=user)
@@ -96,10 +101,11 @@ class DeleteGoal(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
-    def mutate(self, info, id):
+    @staticmethod
+    @login_required
+    def mutate(mutate_self, info, id):
+        """Delete a goal (user must own it)."""
         user = info.context.user
-        if not user.is_authenticated:
-            return DeleteGoal(success=False, errors=["Authentication required"])
 
         try:
             goal = Goal.objects.get(pk=id, user=user)

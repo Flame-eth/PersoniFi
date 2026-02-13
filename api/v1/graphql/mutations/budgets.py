@@ -1,6 +1,7 @@
 import graphene
 from apps.budgets.models import Budget
 from ..types.budgets import BudgetType
+from ..authentication import login_required
 
 
 class CreateBudget(graphene.Mutation):
@@ -15,10 +16,11 @@ class CreateBudget(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
-    def mutate(self, info, name, total_amount, currency, start_date, end_date):
+    @staticmethod
+    @login_required
+    def mutate(mutate_self, info, name, total_amount, currency, start_date, end_date):
+        """Create a new budget for the authenticated user."""
         user = info.context.user
-        if not user.is_authenticated:
-            return CreateBudget(success=False, errors=["Authentication required"])
 
         try:
             budget = Budget.objects.create(
@@ -48,8 +50,10 @@ class UpdateBudget(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
+    @staticmethod
+    @login_required
     def mutate(
-        self,
+        mutate_self,
         info,
         id,
         name=None,
@@ -59,9 +63,8 @@ class UpdateBudget(graphene.Mutation):
         end_date=None,
         is_active=None,
     ):
+        """Update a budget (user must own it)."""
         user = info.context.user
-        if not user.is_authenticated:
-            return UpdateBudget(success=False, errors=["Authentication required"])
 
         try:
             budget = Budget.objects.get(pk=id, user=user)
@@ -92,10 +95,11 @@ class DeleteBudget(graphene.Mutation):
     success = graphene.Boolean()
     errors = graphene.List(graphene.String)
 
-    def mutate(self, info, id):
+    @staticmethod
+    @login_required
+    def mutate(mutate_self, info, id):
+        """Delete a budget (user must own it)."""
         user = info.context.user
-        if not user.is_authenticated:
-            return DeleteBudget(success=False, errors=["Authentication required"])
 
         try:
             budget = Budget.objects.get(pk=id, user=user)
