@@ -1,0 +1,43 @@
+version: '3.9'
+
+# This file overrides docker-compose.yml for development
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.override.yml up
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      DEBUG: 'True'
+      DJANGO_SETTINGS_MODULE: config.settings.development
+    volumes:
+      - .:/app
+    ports:
+      - '8000:8000'
+    stdin_open: true
+    tty: true
+
+  db:
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: password
+
+  redis:
+    ports:
+      - '6379:6379'
+
+  # Remove in development
+  celery:
+    profiles:
+      - donotstart
+
+  celery_beat:
+    profiles:
+      - donotstart
+
+  nginx:
+    profiles:
+      - donotstart
