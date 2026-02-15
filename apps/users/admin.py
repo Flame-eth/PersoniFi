@@ -1,11 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from unfold.admin import ModelAdmin
 
 from .models import User
 
 
 @admin.register(User)
-class UserAdmin(DjangoUserAdmin):
+class UserAdmin(ModelAdmin, DjangoUserAdmin):
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         (
@@ -51,7 +52,8 @@ class UserAdmin(DjangoUserAdmin):
             },
         ),
     )
-    list_display = ("email", "is_staff", "is_active")
-    list_filter = ("is_staff", "is_superuser", "is_active")
-    ordering = ("email",)
+    list_display = ("email", "is_staff", "is_active", "date_joined")
+    list_filter = ("is_staff", "is_superuser", "is_active", "date_joined")
+    ordering = ("-date_joined",)
     search_fields = ("email", "phone_number")
+    date_hierarchy = "date_joined"
