@@ -20,6 +20,7 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS")
 
 INSTALLED_APPS = [
+    "unfold",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -70,7 +71,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "config" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -182,6 +183,118 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "PersoniFi API",
     "DESCRIPTION": "Personal Finance API for Nigeria (NGN/USD)",
     "VERSION": "1.0.0",
+}
+
+# Unfold Admin Configuration
+UNFOLD = {
+    "SITE_TITLE": "PersoniFi Admin",
+    "SITE_HEADER": "PersoniFi Administration",
+    "INDEX_TITLE": "Dashboard",
+    "ENVIRONMENT": "config.settings.unfold_env" if not DEBUG else None,
+    "INDEX_EXTRA_CONTEXT": "config.admin.index_view_extra_context",
+    "COLORS": {
+        "primary": {
+            "50": "#eff6ff",
+            "100": "#dbeafe",
+            "200": "#bfdbfe",
+            "300": "#93c5fd",
+            "400": "#60a5fa",
+            "500": "#3b82f6",
+            "600": "#2563eb",
+            "700": "#1d4ed8",
+            "800": "#1e40af",
+            "900": "#1e3a8a",
+            "950": "#172554",
+        },
+    },
+    "DARK_MODE_THEME": "dark",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": "Dashboard",
+                "separator": False,
+                "items": [
+                    {
+                        "title": "Overview",
+                        "icon": "dashboard",
+                        "link": "/admin/",
+                    },
+                ],
+            },
+            {
+                "title": "Financial Management",
+                "separator": False,
+                "items": [
+                    {
+                        "title": "Accounts",
+                        "icon": "account_balance",
+                        "link": "/admin/accounts/account/",
+                    },
+                    {
+                        "title": "Transactions",
+                        "icon": "receipt_long",
+                        "link": "/admin/transactions/transaction/",
+                    },
+                    {
+                        "title": "Categories",
+                        "icon": "category",
+                        "link": "/admin/categories/category/",
+                    },
+                    {
+                        "title": "Budgets",
+                        "icon": "savings",
+                        "link": "/admin/budgets/budget/",
+                    },
+                    {
+                        "title": "Goals",
+                        "icon": "trending_up",
+                        "link": "/admin/goals/goal/",
+                    },
+                    {
+                        "title": "Analytics",
+                        "icon": "analytics",
+                        "link": "/admin/analytics/financialsnapshot/",
+                    },
+                ],
+            },
+            {
+                "title": "User Management",
+                "separator": False,
+                "items": [
+                    {
+                        "title": "Users",
+                        "icon": "person",
+                        "link": "/admin/users/user/",
+                    },
+                    {
+                        "title": "Notifications",
+                        "icon": "notifications",
+                        "link": "/admin/notifications/notification/",
+                    },
+                ],
+            },
+            {
+                "title": "System",
+                "separator": False,
+                "items": [
+                    {
+                        "title": "Integrations",
+                        "icon": "integration_instructions",
+                        "link": "/admin/integrations/",
+                    },
+                    {
+                        "title": "Subscriptions",
+                        "icon": "card_subscription",
+                        "link": "/admin/subscriptions/",
+                    },
+                ],
+            },
+        ],
+    },
 }
 
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS")
